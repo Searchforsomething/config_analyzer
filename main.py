@@ -1,4 +1,3 @@
-import argparse
 import json
 import os
 import re
@@ -10,7 +9,7 @@ from xml.dom import minidom
 from models import Attribute, Class
 
 
-def topological_sort(classes: dict):
+def topological_sort(classes: dict) -> list:
     graph = {name: set() for name in classes}
     in_degree = {name: 0 for name in classes}
 
@@ -34,7 +33,7 @@ def topological_sort(classes: dict):
     return sorted_classes
 
 
-def get_unique_filename(name: str, extension: str, folder: str='out') -> str:
+def get_unique_filename(name: str, extension: str, folder: str) -> str:
     if not os.path.exists(os.path.join(folder, f'{name}.{extension}')):
         return os.path.join(folder, f'{name}.{extension}')
 
@@ -65,7 +64,7 @@ def generate_tree(tree: ET.ElementTree, elements, parent_element) -> ET.ElementT
     return tree
 
 
-def parse_xml(file_path) -> None:
+def parse_xml(file_path, output_dir='out') -> None:
     tree = validate_xml(file_path)
 
     root = tree.getroot()
@@ -110,7 +109,7 @@ def parse_xml(file_path) -> None:
             class_dict[source].min = int(multiplicity[0])
             class_dict[source].max = int(multiplicity[-1])
         else:
-            print(f"Ошибка: Не найдены классы для агрегации {target} -> {source}", file=sys.stderr)
+            print(f'Ошибка: Не найдены классы для агрегации {source} -> {target}', file=sys.stderr)
             sys.exit(1)
 
     config_root = ET.Element(root_element)
@@ -119,10 +118,10 @@ def parse_xml(file_path) -> None:
     rough_string = ET.tostring(config_root, encoding='utf-8', xml_declaration=False, short_empty_elements=False)
     parsed_string = minidom.parseString(rough_string).toprettyxml(indent='  ')
     formatted_xml = "\n".join(parsed_string.split("\n")[1:])
-    formatted_xml = re.sub(r"<(\w+)/>", r"<\1></\1>", formatted_xml)
+    formatted_xml = re.sub(r'<(\w+)/>', r'<\1></\1>', formatted_xml)
 
-    os.makedirs('out', exist_ok=True)
-    config_name = get_unique_filename(name='config', extension='xml')
+    os.makedirs(output_dir, exist_ok=True)
+    config_name = get_unique_filename(name='config', extension='xml', folder=output_dir)
     with open(config_name, 'a+') as file:
         file.write(formatted_xml)
 
@@ -130,14 +129,12 @@ def parse_xml(file_path) -> None:
     sorted_classes = topological_sort(class_dict)
     for cls in sorted_classes:
         json_data.append(class_dict[cls].to_dict())
-    meta_name = get_unique_filename(name='meta', extension='json')
+    meta_name = get_unique_filename(name='meta', extension='json', folder=output_dir)
     with open(meta_name, 'a+') as file:
         file.write(json.dumps(json_data, indent=4))
     print(f'Результат сохранен в {config_name} и {meta_name}')
 
 
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description='Генератор артефактов')
-    parser.add_argument("file_path", help="Путь к XML-файлу")
-    args = parser.parse_args()
-    parse_xml(args.file_path)
+if __name__ == '__main__':
+    file_path = 'test_files/test_input.xml'
+    parse_xml(file_path)
