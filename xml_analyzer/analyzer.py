@@ -1,5 +1,4 @@
 import json
-import os
 import re
 import sys
 import xml.etree.ElementTree as ET
@@ -38,6 +37,9 @@ def validate_xml(file_path) -> ET.ElementTree:
     try:
         tree = ET.parse(file_path)
         return tree
+    except FileNotFoundError:
+        print(f'Файл не найден: {file_path}', file=sys.stderr)
+        sys.exit(1)
     except ET.ParseError as e:
         print(f'Ошибка в XML: {e}', file=sys.stderr)
         sys.exit(1)
@@ -109,10 +111,11 @@ def parse_xml(file_path, output_dir='out') -> None:
     formatted_xml = "\n".join(parsed_string.split("\n")[1:])
     formatted_xml = re.sub(r'<(\w+)/>', r'<\1></\1>', formatted_xml)
 
-    os.makedirs(output_dir, exist_ok=True)
     config_name = get_unique_filename(name='config', extension='xml', folder=output_dir)
     with open(config_name, 'a+') as file:
         file.write(formatted_xml)
+
+    print(f'Результат сохранен в {config_name}')
 
     json_data = []
     sorted_classes = topological_sort(class_dict)
@@ -121,4 +124,5 @@ def parse_xml(file_path, output_dir='out') -> None:
     meta_name = get_unique_filename(name='meta', extension='json', folder=output_dir)
     with open(meta_name, 'a+') as file:
         file.write(json.dumps(json_data, indent=4))
-    print(f'Результат сохранен в {config_name} и {meta_name}')
+
+    print(f'Результат сохранен в {meta_name}')
