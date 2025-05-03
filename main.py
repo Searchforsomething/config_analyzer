@@ -7,7 +7,7 @@ from xml_analyzer.analyzer import parse_xml
 if __name__ == '__main__':
     output_dir = getenv('OUTPUT_DIR') if getenv('OUTPUT_DIR') else 'out'
     input_dir = getenv('INPUT_DIR') if getenv('INPUT_DIR') else 'test_files'
-    xml_input_path = f'{input_dir}/test_input.xml'
+    xml_input_path = f'{input_dir}/impulse_test_input.xml'
     config_input_path = f'{input_dir}/config.json'
     patched_config_input_path = f'{input_dir}/patched_config.json'
 

@@ -38,10 +38,10 @@ def validate_xml(file_path) -> ET.ElementTree:
         tree = ET.parse(file_path)
         return tree
     except FileNotFoundError:
-        print(f'Файл не найден: {file_path}', file=sys.stderr)
+        print(f'File not found: {file_path}', file=sys.stderr)
         sys.exit(1)
     except ET.ParseError as e:
-        print(f'Ошибка в XML: {e}', file=sys.stderr)
+        print(f'XML error: {e}', file=sys.stderr)
         sys.exit(1)
 
 
@@ -72,7 +72,7 @@ def parse_xml(file_path, output_dir='out') -> None:
         elif is_root_str == 'false':
             is_root = False
         else:
-            print(f'Ошибка в XML: некорректное значение isRoot в классе {class_name}: {is_root_str}', file=sys.stderr)
+            print(f'XML error: incorrect isRoot value in class {class_name}: {is_root_str}', file=sys.stderr)
             sys.exit(1)
         documentation = class_element.get('documentation')
         attributes = []
@@ -86,7 +86,7 @@ def parse_xml(file_path, output_dir='out') -> None:
             name=class_name, is_root=is_root, documentation=documentation, attributes=attributes)
 
     if root_counter != 1:
-        print(f'Ошибка в XML: количество корневых классов != 1', file=sys.stderr)
+        print(f'XML error: root classes amount != 1', file=sys.stderr)
         sys.exit(1)
 
     for aggregation_element in root.findall('Aggregation'):
@@ -100,7 +100,7 @@ def parse_xml(file_path, output_dir='out') -> None:
             class_dict[source].min = int(multiplicity[0])
             class_dict[source].max = int(multiplicity[-1])
         else:
-            print(f'Ошибка: Не найдены классы для агрегации {source} -> {target}', file=sys.stderr)
+            print(f'Error: Classes for aggregation not found {source} -> {target}', file=sys.stderr)
             sys.exit(1)
 
     config_root = ET.Element(root_element)
@@ -115,7 +115,7 @@ def parse_xml(file_path, output_dir='out') -> None:
     with open(config_name, 'a+') as file:
         file.write(formatted_xml)
 
-    print(f'Результат сохранен в {config_name}')
+    print(f'Result saved to {config_name}')
 
     json_data = []
     sorted_classes = topological_sort(class_dict)
@@ -125,4 +125,4 @@ def parse_xml(file_path, output_dir='out') -> None:
     with open(meta_name, 'a+') as file:
         file.write(json.dumps(json_data, indent=4))
 
-    print(f'Результат сохранен в {meta_name}')
+    print(f'Result saved to {meta_name}')
